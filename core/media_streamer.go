@@ -19,6 +19,7 @@ import (
 )
 
 type MediaStreamer interface {
+	MyNewStream(ctx context.Context, id string, reqFormat string, reqBitRate int, noAuth bool) (*Stream, error)
 	NewStream(ctx context.Context, id string, reqFormat string, reqBitRate int) (*Stream, error)
 	DoStream(ctx context.Context, mf *model.MediaFile, reqFormat string, reqBitRate int) (*Stream, error)
 }
@@ -44,6 +45,24 @@ type streamJob struct {
 
 func (j *streamJob) Key() string {
 	return fmt.Sprintf("%s.%s.%d.%s", j.mf.ID, j.mf.UpdatedAt.Format(time.RFC3339Nano), j.bitRate, j.format)
+}
+
+type ErrorNoAuthUserMP3 struct{}
+
+func (m *ErrorNoAuthUserMP3) Error() string {
+	return "не авторизованные могут просматривать только mp3"
+}
+func (ms *mediaStreamer) MyNewStream(ctx context.Context, id string, reqFormat string, reqBitRate int, noAuth bool) (*Stream, error) {
+	mf, err := ms.ds.MediaFile(ctx).Get(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if noAuth && mf.Suffix != "mp3" {
+		return nil, &ErrorNoAuthUserMP3{}
+	}
+
+	return ms.DoStream(ctx, mf, reqFormat, reqBitRate)
 }
 
 func (ms *mediaStreamer) NewStream(ctx context.Context, id string, reqFormat string, reqBitRate int) (*Stream, error) {

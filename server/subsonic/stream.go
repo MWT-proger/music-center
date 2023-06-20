@@ -2,12 +2,14 @@ package subsonic
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/deluan/rest"
 	"github.com/navidrome/navidrome/conf"
 	"github.com/navidrome/navidrome/core"
 	"github.com/navidrome/navidrome/log"
@@ -57,10 +59,14 @@ func (api *Router) Stream(w http.ResponseWriter, r *http.Request) (*responses.Su
 	}
 	maxBitRate := utils.ParamInt(r, "maxBitRate", 0)
 	format := utils.ParamString(r, "format")
-
-	stream, err := api.streamer.NewStream(ctx, id, format, maxBitRate)
+	noAuth := checkNoAuthenticate(api.ds, r)
+	stream, err := api.streamer.MyNewStream(ctx, id, format, maxBitRate, noAuth)
 	if err != nil {
-		return nil, err
+
+		if errors.Is(err, &core.ErrorNoAuthUserMP3{}) {
+			_ = rest.RespondWithError(w, http.StatusUnauthorized, "Not authenticated")
+			return nil, err
+		}
 	}
 
 	// Make sure the stream will be closed at the end, to avoid leakage

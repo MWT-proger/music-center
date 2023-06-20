@@ -69,6 +69,22 @@ func checkRequiredParameters(next http.Handler) http.Handler {
 	})
 }
 
+func checkNoAuthenticate(ds model.DataStore, r *http.Request) bool {
+	ctx := r.Context()
+	username := utils.ParamString(r, "u")
+
+	pass := utils.ParamString(r, "p")
+	token := utils.ParamString(r, "t")
+	salt := utils.ParamString(r, "s")
+	jwt := utils.ParamString(r, "jwt")
+
+	if usr, _ := validateUser(ctx, ds, username, pass, token, salt, jwt); usr != nil {
+		return false
+	}
+	return true
+
+}
+
 func authenticate(ds model.DataStore) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
