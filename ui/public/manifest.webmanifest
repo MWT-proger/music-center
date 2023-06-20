@@ -1,7 +1,7 @@
 {
- "name": "Navidrome",
- "short_name": "Navidrome",
- "description": "Navidrome, an open source web-based music collection server and streamer",
+ "name": "New Age Music",
+ "short_name": "New Age",
+ "description": "New Age Music",
  "categories": ["music", "entertainment"],
  "display": "standalone",
  "start_url": "./",
