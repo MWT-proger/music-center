@@ -85,7 +85,7 @@ func (ms *mediaStreamer) DoStream(ctx context.Context, mf *model.MediaFile, reqF
 			"originalFormat", mf.Suffix, "originalBitRate", mf.BitRate)
 	}()
 
-	format, bitRate = selectTranscodingOptions(ctx, ms.ds, mf, reqFormat, 100)
+	format, bitRate = selectTranscodingOptions(ctx, ms.ds, mf, reqFormat, reqBitRate)
 	s := &Stream{ctx: ctx, mf: mf, format: format, bitRate: bitRate}
 
 	if format == "raw" {
