@@ -112,7 +112,7 @@ const FormLogin = ({ loading, handleSubmit, validate }) => {
           <div className={classes.main}>
             <Card className={classes.card}>
               <div className={classes.avatar}>
-                <img src={Logo} className={classes.icon} alt={'logo'} />
+                <img src="https://i.ibb.co/0MN7mMb/android-icon-192x192.png" className={classes.icon} alt={'logo'} />
               </div>
               <div className={classes.systemName}>
                 <a

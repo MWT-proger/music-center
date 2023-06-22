@@ -26,6 +26,7 @@ type configOptions struct {
 	CacheFolder                  string
 	DbPath                       string
 	LogLevel                     string
+	DomenName                    string
 	ScanInterval                 time.Duration
 	ScanSchedule                 string
 	SessionTimeout               time.Duration
@@ -261,6 +262,7 @@ func init() {
 	viper.SetDefault("cachefolder", "")
 	viper.SetDefault("datafolder", ".")
 	viper.SetDefault("loglevel", "info")
+	viper.SetDefault("domenname", "site.com")
 	viper.SetDefault("address", "0.0.0.0")
 	viper.SetDefault("port", 4533)
 	viper.SetDefault("sessiontimeout", consts.DefaultSessionTimeout)

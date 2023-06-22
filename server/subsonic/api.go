@@ -169,7 +169,7 @@ func (api *Router) routes() http.Handler {
 		hr(r, "stream", api.Stream)
 	})
 	r.Group(func(r chi.Router) {
-		r.Use(authenticate(api.ds))
+		r.Use(authenticateDowload(api.ds))
 		r.Use(getPlayer(api.players))
 		hr(r, "download", api.Download)
 	})

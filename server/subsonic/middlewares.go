@@ -85,6 +85,29 @@ func checkNoAuthenticate(ds model.DataStore, r *http.Request) bool {
 
 }
 
+func authenticateDowload(ds model.DataStore) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			ctx := r.Context()
+			username := utils.ParamString(r, "u")
+
+			pass := utils.ParamString(r, "p")
+			token := utils.ParamString(r, "t")
+			salt := utils.ParamString(r, "s")
+			jwt := utils.ParamString(r, "jwt")
+
+			if usr, _ := validateUser(ctx, ds, username, pass, token, salt, jwt); usr == nil {
+				w.Header().Set("Location", "https://"+conf.Server.DomenName+"/#/login")
+				w.WriteHeader(http.StatusTemporaryRedirect)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func authenticate(ds model.DataStore) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
