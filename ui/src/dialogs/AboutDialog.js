@@ -54,7 +54,7 @@ const AboutDialog = ({ open, onClose }) => {
   return (
     <Dialog onClose={onClose} aria-labelledby="about-dialog-title" open={open}>
       <DialogTitle id="about-dialog-title" onClose={onClose}>
-        Navidrome Music Server
+      New Age Music
       </DialogTitle>
       <DialogContent dividers>
         <TableContainer component={Paper}>
