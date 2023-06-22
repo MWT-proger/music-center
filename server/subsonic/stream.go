@@ -59,8 +59,11 @@ func (api *Router) Stream(w http.ResponseWriter, r *http.Request) (*responses.Su
 	}
 	maxBitRate := utils.ParamInt(r, "maxBitRate", 0)
 	format := utils.ParamString(r, "format")
-	noAuth := checkNoAuthenticate(api.ds, r)
-	stream, err := api.streamer.MyNewStream(ctx, id, format, maxBitRate, noAuth)
+
+	if noAuth := checkNoAuthenticate(api.ds, r); noAuth {
+		format = "mp3"
+	}
+	stream, err := api.streamer.NewStream(ctx, id, format, maxBitRate)
 	if err != nil {
 
 		if errors.Is(err, &core.ErrorNoAuthUserMP3{}) {

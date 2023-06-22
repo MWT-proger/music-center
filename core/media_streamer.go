@@ -19,7 +19,7 @@ import (
 )
 
 type MediaStreamer interface {
-	MyNewStream(ctx context.Context, id string, reqFormat string, reqBitRate int, noAuth bool) (*Stream, error)
+	// MyNewStream(ctx context.Context, id string, reqFormat string, reqBitRate int, noAuth bool) (*Stream, error)
 	NewStream(ctx context.Context, id string, reqFormat string, reqBitRate int) (*Stream, error)
 	DoStream(ctx context.Context, mf *model.MediaFile, reqFormat string, reqBitRate int) (*Stream, error)
 }
@@ -52,18 +52,19 @@ type ErrorNoAuthUserMP3 struct{}
 func (m *ErrorNoAuthUserMP3) Error() string {
 	return "не авторизованные могут просматривать только mp3"
 }
-func (ms *mediaStreamer) MyNewStream(ctx context.Context, id string, reqFormat string, reqBitRate int, noAuth bool) (*Stream, error) {
-	mf, err := ms.ds.MediaFile(ctx).Get(id)
-	if err != nil {
-		return nil, err
-	}
 
-	if noAuth && mf.Suffix != "mp3" {
-		return nil, &ErrorNoAuthUserMP3{}
-	}
+// func (ms *mediaStreamer) MyNewStream(ctx context.Context, id string, reqFormat string, reqBitRate int, noAuth bool) (*Stream, error) {
+// 	mf, err := ms.ds.MediaFile(ctx).Get(id)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return ms.DoStream(ctx, mf, reqFormat, reqBitRate)
-}
+// 	// if noAuth && mf.Suffix != "mp3" {
+// 	// 	return nil, &ErrorNoAuthUserMP3{}
+// 	// }
+
+// 	return ms.DoStream(ctx, mf, reqFormat, reqBitRate)
+// }
 
 func (ms *mediaStreamer) NewStream(ctx context.Context, id string, reqFormat string, reqBitRate int) (*Stream, error) {
 	mf, err := ms.ds.MediaFile(ctx).Get(id)
@@ -84,7 +85,7 @@ func (ms *mediaStreamer) DoStream(ctx context.Context, mf *model.MediaFile, reqF
 			"originalFormat", mf.Suffix, "originalBitRate", mf.BitRate)
 	}()
 
-	format, bitRate = selectTranscodingOptions(ctx, ms.ds, mf, reqFormat, reqBitRate)
+	format, bitRate = selectTranscodingOptions(ctx, ms.ds, mf, reqFormat, 100)
 	s := &Stream{ctx: ctx, mf: mf, format: format, bitRate: bitRate}
 
 	if format == "raw" {
@@ -147,9 +148,12 @@ func (s *Stream) EstimatedContentLength() int {
 // TODO This function deserves some love (refactoring)
 func selectTranscodingOptions(ctx context.Context, ds model.DataStore, mf *model.MediaFile, reqFormat string, reqBitRate int) (format string, bitRate int) {
 	format = "raw"
+	log.Warn("reqFormat =", reqFormat)
+	log.Warn("mf.Suffix =", mf.Suffix)
 	if reqFormat == "raw" {
 		return format, 0
 	}
+
 	if reqFormat == mf.Suffix && reqBitRate == 0 {
 		bitRate = mf.BitRate
 		return format, bitRate
@@ -181,6 +185,8 @@ func selectTranscodingOptions(ctx context.Context, ds model.DataStore, mf *model
 		return format, bitRate
 	}
 	t, err := ds.Transcoding(ctx).FindByFormat(cFormat)
+	log.Warn("Поиск по формату", cFormat)
+	log.Warn("Поиск по формату", t)
 	if err == nil {
 		format = t.TargetFormat
 		if cBitRate != 0 {
@@ -189,6 +195,7 @@ func selectTranscodingOptions(ctx context.Context, ds model.DataStore, mf *model
 			bitRate = t.DefaultBitRate
 		}
 	}
+	log.Warn("Успех")
 	if format == mf.Suffix && bitRate >= mf.BitRate {
 		format = "raw"
 		bitRate = 0
