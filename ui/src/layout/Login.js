@@ -116,12 +116,13 @@ const FormLogin = ({ loading, handleSubmit, validate }) => {
               </div>
               <div className={classes.systemName}>
                 <a
-                  href="https://www.navidrome.org"
+                  href="https://ticket.navidrome.ru"
                   target="_blank"
-                  rel="noopener noreferrer"
+                  rel="nofollow"
                   className={classes.systemNameLink}
                 >
-                  Navidrome
+                  <img src="https://thumb.cloud.mail.ru/weblink/thumb/xw1/zJHt/3wmG6jJNG" 
+                  alt="New Age Music logo" title="New Age Music" align="right"></img>
                 </a>
               </div>
               {config.welcomeMessage && (
