@@ -38,26 +38,25 @@ func (n *Router) routes() http.Handler {
 		n.R(r, "/artist", model.Artist{}, false)
 		n.R(r, "/genre", model.Genre{}, false)
 		n.R(r, "/player", model.Player{}, true)
-		n.R(r, "/playlist", model.Playlist{}, true)
+
 		n.R(r, "/transcoding", model.Transcoding{}, conf.Server.EnableTranscodingConfig)
 		n.R(r, "/radio", model.Radio{}, true)
 		if conf.Server.EnableSharing {
 			n.RX(r, "/share", n.share.NewRepository, true)
 		}
 
-		r.Group(func(r chi.Router) {
-			r.Use(server.Authenticator(n.ds))
-			r.Use(server.JWTRefresher)
-			n.R(r, "/user", model.User{}, true)
-
-		})
-
-		n.addPlaylistTrackRoute(r)
-
 		// Keepalive endpoint to be used to keep the session valid (ex: while playing songs)
 		r.Get("/keepalive/*", func(w http.ResponseWriter, r *http.Request) {
 			_, _ = w.Write([]byte(`{"response":"ok", "id":"keepalive"}`))
 		})
+	})
+	r.Group(func(r chi.Router) {
+		r.Use(server.Authenticator(n.ds))
+		r.Use(server.JWTRefresher)
+		n.R(r, "/user", model.User{}, true)
+		n.R(r, "/playlist", model.Playlist{}, true)
+		n.addPlaylistTrackRoute(r)
+
 	})
 
 	return r
