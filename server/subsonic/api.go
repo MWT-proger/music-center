@@ -107,12 +107,15 @@ func (api *Router) routes() http.Handler {
 		h(r, "getSongsByGenre", api.GetSongsByGenre)
 	})
 	r.Group(func(r chi.Router) {
-		// r.Use(authenticate(api.ds))
+		r.Use(getPlayer(api.players))
+		h(r, "scrobble", api.Scrobble)
+	})
+	r.Group(func(r chi.Router) {
+		r.Use(authenticateActive(api.ds))
 		r.Use(getPlayer(api.players))
 		h(r, "setRating", api.SetRating)
 		h(r, "star", api.Star)
 		h(r, "unstar", api.Unstar)
-		h(r, "scrobble", api.Scrobble)
 	})
 	r.Group(func(r chi.Router) {
 		r.Use(authenticate(api.ds))
