@@ -35,6 +35,7 @@ type UserRepository interface {
 	FindFirstAdmin() (*User, error)
 	// FindByUsername must be case-insensitive
 	FindByUsername(username string) (*User, error)
+	FindByEmail(email string) (*User, error)
 	// FindByUsernameWithPassword is the same as above, but also returns the decrypted password
 	FindByUsernameWithPassword(username string) (*User, error)
 }

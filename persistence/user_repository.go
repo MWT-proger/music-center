@@ -97,6 +97,13 @@ func (r *userRepository) FindByUsername(username string) (*model.User, error) {
 	return &usr, err
 }
 
+func (r *userRepository) FindByEmail(email string) (*model.User, error) {
+	sel := r.newSelect().Columns("*").Where(Like{"email": email})
+	var usr model.User
+	err := r.queryOne(sel, &usr)
+	return &usr, err
+}
+
 func (r *userRepository) FindByUsernameWithPassword(username string) (*model.User, error) {
 	usr, err := r.FindByUsername(username)
 	if err == nil {
@@ -156,12 +163,19 @@ func (r *userRepository) NewInstance() interface{} {
 
 func (r *userRepository) Save(entity interface{}) (string, error) {
 	usr := loggedUser(r.ctx)
-	if !usr.IsAdmin {
-		return "", rest.ErrPermissionDenied
-	}
+	// if !usr.IsAdmin {
+	// 	return "", rest.ErrPermissionDenied
+	// }
+
 	u := entity.(*model.User)
 	if err := validateUsernameUnique(r, u); err != nil {
 		return "", err
+	}
+	if err := validateEmailUnique(r, u); err != nil {
+		return "", err
+	}
+	if !usr.IsAdmin {
+		u.IsAdmin = false
 	}
 	err := r.Put(u)
 	if err != nil {
@@ -238,6 +252,20 @@ func validateUsernameUnique(r model.UserRepository, u *model.User) error {
 	}
 	if usr.ID != u.ID {
 		return &rest.ValidationError{Errors: map[string]string{"userName": "ra.validation.unique"}}
+	}
+	return nil
+}
+
+func validateEmailUnique(r model.UserRepository, u *model.User) error {
+	usr, err := r.FindByEmail(u.Email)
+	if errors.Is(err, model.ErrNotFound) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if usr.ID != u.ID {
+		return &rest.ValidationError{Errors: map[string]string{"email": "ra.validation.unique"}}
 	}
 	return nil
 }

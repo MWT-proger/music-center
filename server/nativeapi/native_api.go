@@ -28,21 +28,21 @@ func (n *Router) routes() http.Handler {
 	r := chi.NewRouter()
 
 	// Public
-	n.RX(r, "/translation", newTranslationRepository, false)
+	n.RX(r, "/translation", newTranslationRepository, false, false)
 
 	// Protected
 	r.Group(func(r chi.Router) {
 		r.Use(server.JWTRefresher)
-		n.R(r, "/song", model.MediaFile{}, false)
-		n.R(r, "/album", model.Album{}, false)
-		n.R(r, "/artist", model.Artist{}, false)
-		n.R(r, "/genre", model.Genre{}, false)
-		n.R(r, "/player", model.Player{}, true)
+		n.R(r, "/song", model.MediaFile{}, false, false)
+		n.R(r, "/album", model.Album{}, false, false)
+		n.R(r, "/artist", model.Artist{}, false, false)
+		n.R(r, "/genre", model.Genre{}, false, false)
+		n.R(r, "/player", model.Player{}, true, false)
 
-		n.R(r, "/transcoding", model.Transcoding{}, conf.Server.EnableTranscodingConfig)
-		n.R(r, "/radio", model.Radio{}, true)
+		n.R(r, "/transcoding", model.Transcoding{}, conf.Server.EnableTranscodingConfig, false)
+		n.R(r, "/radio", model.Radio{}, true, false)
 		if conf.Server.EnableSharing {
-			n.RX(r, "/share", n.share.NewRepository, true)
+			n.RX(r, "/share", n.share.NewRepository, true, false)
 		}
 
 		// Keepalive endpoint to be used to keep the session valid (ex: while playing songs)
@@ -53,36 +53,45 @@ func (n *Router) routes() http.Handler {
 	r.Group(func(r chi.Router) {
 		r.Use(server.Authenticator(n.ds))
 		r.Use(server.JWTRefresher)
-		n.R(r, "/user", model.User{}, true)
-		n.R(r, "/playlist", model.Playlist{}, true)
+		n.R(r, "/user", model.User{}, true, false)
+		n.R(r, "/playlist", model.Playlist{}, true, false)
 		n.addPlaylistTrackRoute(r)
 
+	})
+
+	r.Group(func(r chi.Router) {
+		n.R(r, "/user/new", model.User{}, true, true)
 	})
 
 	return r
 }
 
-func (n *Router) R(r chi.Router, pathPrefix string, model interface{}, persistable bool) {
+func (n *Router) R(r chi.Router, pathPrefix string, model interface{}, persistable bool, onlyPost bool) {
 	constructor := func(ctx context.Context) rest.Repository {
 		return n.ds.Resource(ctx, model)
 	}
-	n.RX(r, pathPrefix, constructor, persistable)
+	n.RX(r, pathPrefix, constructor, persistable, onlyPost)
 }
 
-func (n *Router) RX(r chi.Router, pathPrefix string, constructor rest.RepositoryConstructor, persistable bool) {
+func (n *Router) RX(r chi.Router, pathPrefix string, constructor rest.RepositoryConstructor, persistable bool, onlyPost bool) {
 	r.Route(pathPrefix, func(r chi.Router) {
-		r.Get("/", rest.GetAll(constructor))
+		if !onlyPost {
+			r.Get("/", rest.GetAll(constructor))
+		}
+
 		if persistable {
 			r.Post("/", rest.Post(constructor))
 		}
-		r.Route("/{id}", func(r chi.Router) {
-			r.Use(server.URLParamsMiddleware)
-			r.Get("/", rest.Get(constructor))
-			if persistable {
-				r.Put("/", rest.Put(constructor))
-				r.Delete("/", rest.Delete(constructor))
-			}
-		})
+		if !onlyPost {
+			r.Route("/{id}", func(r chi.Router) {
+				r.Use(server.URLParamsMiddleware)
+				r.Get("/", rest.Get(constructor))
+				if persistable {
+					r.Put("/", rest.Put(constructor))
+					r.Delete("/", rest.Delete(constructor))
+				}
+			})
+		}
 	})
 }
 
