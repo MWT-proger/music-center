@@ -6,14 +6,16 @@ import (
 
 type User struct {
 	ID           string    `structs:"id" json:"id" orm:"column(id)"`
-	UserName     string    `structs:"user_name" json:"userName"`
-	Name         string    `structs:"name" json:"name"`
-	Email        string    `structs:"email" json:"email"`
-	IsAdmin      bool      `structs:"is_admin" json:"isAdmin"`
-	LastLoginAt  time.Time `structs:"last_login_at" json:"lastLoginAt"`
-	LastAccessAt time.Time `structs:"last_access_at" json:"lastAccessAt"`
-	CreatedAt    time.Time `structs:"created_at" json:"createdAt"`
-	UpdatedAt    time.Time `structs:"updated_at" json:"updatedAt"`
+	UserName     string    `structs:"user_name,omitempty" json:"userName,omitempty"`
+	Name         string    `structs:"name,omitempty" json:"name,omitempty"`
+	Email        string    `structs:"email,omitempty" json:"email,omitempty"`
+	IsAdmin      bool      `structs:"is_admin,omitempty" json:"isAdmin,omitempty"`
+	LastLoginAt  time.Time `structs:"last_login_at,omitempty" json:"lastLoginAt,omitempty"`
+	LastAccessAt time.Time `structs:"last_access_at,omitempty" json:"lastAccessAt,omitempty"`
+	CreatedAt    time.Time `structs:"created_at,omitempty" json:"createdAt,omitempty"`
+	UpdatedAt    time.Time `structs:"updated_at,omitempty" json:"updatedAt,omitempty"`
+
+	SubscriptionExpDate time.Time `structs:"subscription_exp_date,omitempty" json:"SubscriptionExpDate,omitempty"`
 
 	// This is only available on the backend, and it is never sent over the wire
 	Password string `structs:"-" json:"-"`
