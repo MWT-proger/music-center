@@ -69,6 +69,9 @@ func (r *userRepository) Put(u *model.User) error {
 	}
 	values, _ := toSqlArgs(*u)
 	delete(values, "current_password")
+	// update := Update(r.tableName).Where(Eq{"id": u.ID}).SetMap(values)
+	sel := r.newSelect().Columns("id").Where(Eq{"id": u.ID})
+	fmt.Println(sel)
 	update := Update(r.tableName).Where(Eq{"id": u.ID}).SetMap(values)
 	count, err := r.executeSQL(update)
 	if err != nil {
@@ -185,6 +188,12 @@ func (r *userRepository) Save(entity interface{}) (string, error) {
 }
 
 func (r *userRepository) Update(id string, entity interface{}, cols ...string) error {
+
+	if _, err := r.Get(id); errors.Is(err, model.ErrNotFound) {
+		// Если пользователя с таким id  не существует ,возвращаем ошибку
+		return rest.ErrNotFound
+	}
+
 	u := entity.(*model.User)
 	u.ID = id
 	usr := loggedUser(r.ctx)
