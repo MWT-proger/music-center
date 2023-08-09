@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	ua "github.com/mileusna/useragent"
 	"github.com/navidrome/navidrome/conf"
@@ -69,7 +70,7 @@ func checkRequiredParameters(next http.Handler) http.Handler {
 	})
 }
 
-func checkNoAuthenticate(ds model.DataStore, r *http.Request) bool {
+func checkAuthenticate(ds model.DataStore, r *http.Request) (*model.User, bool) {
 	ctx := r.Context()
 	username := utils.ParamString(r, "u")
 
@@ -78,7 +79,31 @@ func checkNoAuthenticate(ds model.DataStore, r *http.Request) bool {
 	salt := utils.ParamString(r, "s")
 	jwt := utils.ParamString(r, "jwt")
 
-	if usr, _ := validateUser(ctx, ds, username, pass, token, salt, jwt); usr != nil {
+	usr, _ := validateUser(ctx, ds, username, pass, token, salt, jwt)
+
+	if usr == nil {
+		return nil, false
+	}
+	return usr, true
+
+}
+
+func checkSubscription(ds model.DataStore, r *http.Request, usr *model.User) bool {
+	var ok bool
+
+	if usr == nil {
+		usr, ok = checkAuthenticate(ds, r)
+	} else {
+		ok = true
+	}
+
+	if !ok {
+		return false
+	}
+
+	today := time.Now().UTC().AddDate(0, 0, 1).Truncate(24 * time.Hour).Add(-1 * time.Second)
+
+	if ok := usr.SubscriptionExpDate.After(today); !ok {
 		return false
 	}
 	return true
@@ -117,8 +142,16 @@ func authenticateDowload(ds model.DataStore) func(next http.Handler) http.Handle
 			salt := utils.ParamString(r, "s")
 			jwt := utils.ParamString(r, "jwt")
 
-			if usr, _ := validateUser(ctx, ds, username, pass, token, salt, jwt); usr == nil {
+			usr, _ := validateUser(ctx, ds, username, pass, token, salt, jwt)
+
+			if usr == nil {
 				w.Header().Set("Location", "https://"+conf.Server.DomenName+"/#/login")
+				w.WriteHeader(http.StatusTemporaryRedirect)
+				return
+			}
+
+			if ok := checkSubscription(ds, r, usr); !ok {
+				w.Header().Set("Location", conf.Server.RedirectSubscription)
 				w.WriteHeader(http.StatusTemporaryRedirect)
 				return
 			}

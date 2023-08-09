@@ -60,7 +60,7 @@ func (api *Router) Stream(w http.ResponseWriter, r *http.Request) (*responses.Su
 	maxBitRate := utils.ParamInt(r, "maxBitRate", 0)
 	format := utils.ParamString(r, "format")
 
-	if noAuth := checkNoAuthenticate(api.ds, r); noAuth {
+	if ok := checkSubscription(api.ds, r, nil); !ok {
 		format = "mp3"
 	}
 	stream, err := api.streamer.NewStream(ctx, id, format, maxBitRate)

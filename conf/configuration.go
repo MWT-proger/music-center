@@ -27,6 +27,7 @@ type configOptions struct {
 	DbPath                       string
 	LogLevel                     string
 	DomenName                    string
+	RedirectSubscription         string
 	ScanInterval                 time.Duration
 	ScanSchedule                 string
 	SessionTimeout               time.Duration
@@ -263,6 +264,7 @@ func init() {
 	viper.SetDefault("datafolder", ".")
 	viper.SetDefault("loglevel", "info")
 	viper.SetDefault("domenname", "site.com")
+	viper.SetDefault("redirectsubscription", "site.com")
 	viper.SetDefault("address", "0.0.0.0")
 	viper.SetDefault("port", 4533)
 	viper.SetDefault("sessiontimeout", consts.DefaultSessionTimeout)
