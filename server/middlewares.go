@@ -1,6 +1,8 @@
 package server
 
 import (
+	"context"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -12,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/navidrome/navidrome/conf"
+	"github.com/navidrome/navidrome/model"
 	. "github.com/navidrome/navidrome/utils/gg"
 
 	"github.com/go-chi/chi/v5/middleware"
@@ -71,6 +74,82 @@ func robotsTXT(fs fs.FS) func(http.Handler) http.Handler {
 			if strings.HasSuffix(r.URL.Path, "/robots.txt") {
 				r.URL.Path = "/robots.txt"
 				http.FileServer(http.FS(fs)).ServeHTTP(w, r)
+			} else {
+				next.ServeHTTP(w, r)
+			}
+		})
+	}
+}
+
+type URL struct {
+	XMLName    xml.Name `xml:"url"`
+	LOC        string   `xml:"loc"`
+	Lastmod    string   `xml:"lastmod,omitempty"`
+	Changefreq string   `xml:"changefreq,omitempty"`
+	Priority   string   `xml:"priority,omitempty"`
+}
+
+type URLSet struct {
+	XMLName    xml.Name `xml:"urlset"`
+	XMLNS      string   `xml:"xmlns,attr"`
+	XMLNSXHTML string   `xml:"xmlns:xhtml,attr"`
+	URL        []URL    `xml:"url"`
+}
+
+func sitemapXML(ds model.DataStore) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if strings.HasSuffix(r.URL.Path, "/sitemap.xml") {
+				baseURL := fmt.Sprintf("https://%s/app/#/", conf.Server.DomenName)
+				urls := []URL{}
+				urls = append(urls,
+					URL{LOC: baseURL + "album/all", Priority: "1.0"},
+					URL{LOC: baseURL + "album/topRated", Priority: "1.0"},
+					URL{LOC: baseURL + "album/recentlyAdded", Priority: "1.0"},
+					URL{LOC: baseURL + "album/mostPlayed", Priority: "1.0"},
+					URL{LOC: baseURL + "artist"},
+					URL{LOC: baseURL + "song", Priority: "0.5"},
+				)
+
+				albums, err := ds.Album(context.TODO()).GetAll(model.QueryOptions{})
+				if err == nil {
+					for _, album := range albums {
+						albumURL := baseURL + "album/" + album.ID + "/show"
+						urls = append(urls, URL{
+							LOC:        albumURL,
+							Lastmod:    album.UpdatedAt.Format("2006-01-02"),
+							Changefreq: "always",
+							Priority:   "0.8",
+						})
+					}
+				}
+
+				artists, err := ds.Artist(context.TODO()).GetAll(model.QueryOptions{})
+				if err == nil {
+					for _, artist := range artists {
+						artistURL := baseURL + "artist/" + artist.ID + "/show"
+						urls = append(urls, URL{
+							LOC:        artistURL,
+							Changefreq: "always",
+							Priority:   "0.8",
+						})
+					}
+				}
+
+				url_set := URLSet{
+					XMLNS:      "http://www.sitemaps.org/schemas/sitemap/0.9",
+					XMLNSXHTML: "http://www.w3.org/1999/xhtml",
+					URL:        urls,
+				}
+
+				x, err := xml.MarshalIndent(url_set, "", "	")
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				w.Header().Set("Content-Type", "application/xml")
+				w.Write(x)
 			} else {
 				next.ServeHTTP(w, r)
 			}

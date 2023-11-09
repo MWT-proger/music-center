@@ -1,4 +1,10 @@
-User-agent: bingbot
+User-Agent: *
+Host: newage.one
+Allow: /
+Allow: /app
+Disallow: /api
+Disallow: /rest
+Disallow: /share
+Disallow: /api
 Disallow: /manifest.webmanifest
-
-User-agent: *
+Sitemap: https://newage.one/sitemap.xml

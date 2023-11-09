@@ -154,6 +154,7 @@ func (s *Server) initRoutes() {
 		middleware.Recoverer,
 		middleware.Heartbeat("/ping"),
 		robotsTXT(ui.BuildAssets()),
+		sitemapXML(s.ds),
 		serverAddressMiddleware,
 		clientUniqueIDMiddleware,
 	)
