@@ -111,7 +111,7 @@ func sitemapXML(ds model.DataStore) func(http.Handler) http.Handler {
 					URL{LOC: baseURL + "song", Priority: "0.5"},
 				)
 
-				albums, err := ds.Album(context.TODO()).GetAll(model.QueryOptions{})
+				albums, err := ds.Album(context.TODO()).GetAll(model.QueryOptions{Max: 100})
 				if err == nil {
 					for _, album := range albums {
 						albumURL := baseURL + "album/" + album.ID + "/show"
@@ -124,7 +124,7 @@ func sitemapXML(ds model.DataStore) func(http.Handler) http.Handler {
 					}
 				}
 
-				artists, err := ds.Artist(context.TODO()).GetAll(model.QueryOptions{})
+				artists, err := ds.Artist(context.TODO()).GetAll(model.QueryOptions{Max: 100})
 				if err == nil {
 					for _, artist := range artists {
 						artistURL := baseURL + "artist/" + artist.ID + "/show"
