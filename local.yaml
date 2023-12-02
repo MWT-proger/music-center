@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 4533:4533
+    volumes:
+      - ./data/:/data/
+      - ./music/:/music/
+    
