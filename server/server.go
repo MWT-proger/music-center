@@ -207,6 +207,9 @@ func (s *Server) mountAuthenticationRoutes() chi.Router {
 func (s *Server) mountRootRedirector() {
 	r := s.router
 	// Redirect root to UI URL
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/", http.StatusFound)
+	})
 	r.Get("/*", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, s.appRoot+"/", http.StatusFound)
 	})

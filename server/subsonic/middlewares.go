@@ -145,7 +145,7 @@ func authenticateDowload(ds model.DataStore) func(next http.Handler) http.Handle
 			usr, _ := validateUser(ctx, ds, username, pass, token, salt, jwt)
 
 			if usr == nil {
-				w.Header().Set("Location", "https://"+conf.Server.DomenName+"/#/login")
+				w.Header().Set("Location", "https://"+conf.Server.DomenName+"/login")
 				w.WriteHeader(http.StatusTemporaryRedirect)
 				return
 			}

@@ -1,6 +1,6 @@
 import ReactGA from 'react-ga'
 import { Provider } from 'react-redux'
-import { createHashHistory } from 'history'
+import { createBrowserHistory } from 'history'
 import { Admin as RAAdmin, Resource } from 'react-admin'
 import { HotKeys } from 'react-hotkeys'
 import dataProvider from './dataProvider'
@@ -37,7 +37,7 @@ import { keyMap } from './hotkeys'
 import useChangeThemeColor from './useChangeThemeColor'
 import SharePlayer from './share/SharePlayer'
 
-const history = createHashHistory()
+const history = createBrowserHistory()
 
 if (config.gaTrackingId) {
   ReactGA.initialize(config.gaTrackingId)
