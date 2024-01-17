@@ -100,7 +100,7 @@ func sitemapXML(ds model.DataStore) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if strings.HasSuffix(r.URL.Path, "/sitemap.xml") {
-				baseURL := fmt.Sprintf("https://%s/", conf.Server.DomenName)
+				baseURL := fmt.Sprintf("https://%s/app/", conf.Server.DomenName)
 				urls := []URL{}
 				urls = append(urls,
 					URL{LOC: baseURL + "album/all", Priority: "1.0"},

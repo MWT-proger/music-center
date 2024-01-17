@@ -55,6 +55,7 @@ func (s *Server) MountRouter(description, urlPath string, subRouter http.Handler
 // Run starts the server with the given address, and if specified, with TLS enabled.
 func (s *Server) Run(ctx context.Context, addr string, port int, tlsCert string, tlsKey string) error {
 	// Mount the router for the frontend assets
+
 	s.MountRouter("WebUI", consts.URLPathUI, s.frontendAssetsHandler())
 
 	// Create a new http.Server with the specified read header timeout and handler
@@ -207,9 +208,6 @@ func (s *Server) mountAuthenticationRoutes() chi.Router {
 func (s *Server) mountRootRedirector() {
 	r := s.router
 	// Redirect root to UI URL
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/", http.StatusFound)
-	})
 	r.Get("/*", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, s.appRoot+"/", http.StatusFound)
 	})

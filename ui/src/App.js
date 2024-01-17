@@ -37,7 +37,7 @@ import { keyMap } from './hotkeys'
 import useChangeThemeColor from './useChangeThemeColor'
 import SharePlayer from './share/SharePlayer'
 
-const history = createBrowserHistory()
+const history = createBrowserHistory({ basename: "app" })
 
 if (config.gaTrackingId) {
   ReactGA.initialize(config.gaTrackingId)
